@@ -6,7 +6,7 @@ Webカメラで顔の位置を検出し、視点に応じて3Dシーンのカメ
 
 ## 🎮 デモ
 
-**[▶ ライブデモを見る](https://YOUR_USERNAME.github.io/head-tracking-parallax/)**
+**[▶ ライブデモを見る](https://kai-sijimi.github.io/head-tracking-parallax/)**
 
 ## ✨ 特徴
 
@@ -60,7 +60,7 @@ Webカメラで顔の位置を検出し、視点に応じて3Dシーンのカメ
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/YOUR_USERNAME/head-tracking-parallax.git
+git clone https://github.com/Kai-sijimi/head-tracking-parallax.git
 
 # ディレクトリに移動
 cd head-tracking-parallax
