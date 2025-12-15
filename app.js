@@ -65,15 +65,15 @@ function clearModel() {
 function createCubeModel() {
     clearModel();
     
-    // Main cube
-    const geometry = new THREE.BoxGeometry(2.5, 2.5, 2.5);
+    // Main cube - BIGGER and more dramatic
+    const geometry = new THREE.BoxGeometry(3, 3, 3);
     const materials = [
-        new THREE.MeshStandardMaterial({ color: 0x00d4ff, metalness: 0.3, roughness: 0.4 }),
-        new THREE.MeshStandardMaterial({ color: 0x7b2cbf, metalness: 0.3, roughness: 0.4 }),
-        new THREE.MeshStandardMaterial({ color: 0xff006e, metalness: 0.3, roughness: 0.4 }),
-        new THREE.MeshStandardMaterial({ color: 0x00ff88, metalness: 0.3, roughness: 0.4 }),
-        new THREE.MeshStandardMaterial({ color: 0xffbe0b, metalness: 0.3, roughness: 0.4 }),
-        new THREE.MeshStandardMaterial({ color: 0xff5400, metalness: 0.3, roughness: 0.4 }),
+        new THREE.MeshStandardMaterial({ color: 0x00d4ff, metalness: 0.5, roughness: 0.2, emissive: 0x00d4ff, emissiveIntensity: 0.1 }),
+        new THREE.MeshStandardMaterial({ color: 0x7b2cbf, metalness: 0.5, roughness: 0.2, emissive: 0x7b2cbf, emissiveIntensity: 0.1 }),
+        new THREE.MeshStandardMaterial({ color: 0xff006e, metalness: 0.5, roughness: 0.2, emissive: 0xff006e, emissiveIntensity: 0.1 }),
+        new THREE.MeshStandardMaterial({ color: 0x00ff88, metalness: 0.5, roughness: 0.2, emissive: 0x00ff88, emissiveIntensity: 0.1 }),
+        new THREE.MeshStandardMaterial({ color: 0xffbe0b, metalness: 0.5, roughness: 0.2, emissive: 0xffbe0b, emissiveIntensity: 0.1 }),
+        new THREE.MeshStandardMaterial({ color: 0xff5400, metalness: 0.5, roughness: 0.2, emissive: 0xff5400, emissiveIntensity: 0.1 }),
     ];
     const cube = new THREE.Mesh(geometry, materials);
     cube.castShadow = true;
@@ -81,40 +81,80 @@ function createCubeModel() {
     cube.userData.isMainObject = true;
     modelGroup.add(cube);
     
-    // Wireframe overlay
-    const wireGeometry = new THREE.BoxGeometry(2.55, 2.55, 2.55);
+    // Wireframe overlay - glowing
+    const wireGeometry = new THREE.BoxGeometry(3.1, 3.1, 3.1);
     const wireMaterial = new THREE.MeshBasicMaterial({ 
-        color: 0xffffff, 
+        color: 0x00ffff, 
         wireframe: true,
         transparent: true,
-        opacity: 0.2
+        opacity: 0.4
     });
     const wireframe = new THREE.Mesh(wireGeometry, wireMaterial);
     wireframe.userData.isMainObject = true;
     modelGroup.add(wireframe);
     
-    // Floating smaller cubes
-    for (let i = 0; i < 6; i++) {
-        const smallGeo = new THREE.BoxGeometry(0.35, 0.35, 0.35);
+    // MANY MORE floating cubes in multiple rings!
+    const colors = [0x00d4ff, 0x7b2cbf, 0xff006e, 0x00ff88, 0xffbe0b, 0xff5400];
+    
+    // Inner ring - small fast cubes
+    for (let i = 0; i < 8; i++) {
+        const smallGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
         const smallMat = new THREE.MeshStandardMaterial({
-            color: [0x00d4ff, 0x7b2cbf, 0xff006e, 0x00ff88][i % 4],
-            emissive: [0x00d4ff, 0x7b2cbf, 0xff006e, 0x00ff88][i % 4],
-            emissiveIntensity: 0.2,
-            metalness: 0.5,
-            roughness: 0.3
+            color: colors[i % colors.length],
+            emissive: colors[i % colors.length],
+            emissiveIntensity: 0.5,
+            metalness: 0.8,
+            roughness: 0.2
         });
         const smallCube = new THREE.Mesh(smallGeo, smallMat);
-        const angle = (i / 6) * Math.PI * 2;
-        const radius = 2.5;
-        smallCube.position.set(
-            Math.cos(angle) * radius,
-            Math.sin(angle * 2) * 1,
-            Math.sin(angle) * radius
-        );
+        const angle = (i / 8) * Math.PI * 2;
+        smallCube.position.set(0, 0, 0);
         smallCube.userData.angle = angle;
         smallCube.userData.isFloating = true;
-        smallCube.userData.baseY = smallCube.position.y;
+        smallCube.userData.baseY = (Math.random() - 0.5) * 2;
+        smallCube.userData.speed = 1.5;
         modelGroup.add(smallCube);
+    }
+    
+    // Outer ring - bigger slower cubes
+    for (let i = 0; i < 6; i++) {
+        const medGeo = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        const medMat = new THREE.MeshStandardMaterial({
+            color: colors[(i + 3) % colors.length],
+            emissive: colors[(i + 3) % colors.length],
+            emissiveIntensity: 0.3,
+            metalness: 0.6,
+            roughness: 0.3
+        });
+        const medCube = new THREE.Mesh(medGeo, medMat);
+        const angle = (i / 6) * Math.PI * 2 + 0.5;
+        medCube.position.set(0, 0, 0);
+        medCube.userData.angle = angle;
+        medCube.userData.isFloating = true;
+        medCube.userData.baseY = (Math.random() - 0.5) * 3;
+        medCube.userData.speed = 0.7;
+        modelGroup.add(medCube);
+    }
+    
+    // Sparkle particles (tiny cubes)
+    for (let i = 0; i < 20; i++) {
+        const tinyGeo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+        const tinyMat = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.8
+        });
+        const tiny = new THREE.Mesh(tinyGeo, tinyMat);
+        tiny.position.set(
+            (Math.random() - 0.5) * 8,
+            (Math.random() - 0.5) * 6,
+            (Math.random() - 0.5) * 8
+        );
+        tiny.userData.angle = Math.random() * Math.PI * 2;
+        tiny.userData.isFloating = true;
+        tiny.userData.baseY = tiny.position.y;
+        tiny.userData.speed = 0.3 + Math.random() * 0.5;
+        modelGroup.add(tiny);
     }
 }
 
@@ -232,11 +272,13 @@ function createCharacterModel() {
     bodyGroup.userData.isCharacter = true;
     modelGroup.add(bodyGroup);
     
-    // Add floating stars
-    for (let i = 0; i < 5; i++) {
+    // Add LOTS of floating stars and hearts!
+    const decorColors = [0xffbe0b, 0xff006e, 0x00d4ff, 0x00ff88, 0xff5400];
+    
+    for (let i = 0; i < 15; i++) {
         const starShape = new THREE.Shape();
-        const outerRadius = 0.2;
-        const innerRadius = 0.1;
+        const outerRadius = 0.15 + Math.random() * 0.15;
+        const innerRadius = outerRadius * 0.5;
         for (let j = 0; j < 10; j++) {
             const radius = j % 2 === 0 ? outerRadius : innerRadius;
             const angle = (j / 10) * Math.PI * 2 - Math.PI / 2;
@@ -247,23 +289,72 @@ function createCharacterModel() {
             }
         }
         starShape.closePath();
-        const starGeo = new THREE.ExtrudeGeometry(starShape, { depth: 0.08, bevelEnabled: false });
+        const starGeo = new THREE.ExtrudeGeometry(starShape, { depth: 0.05, bevelEnabled: false });
         const starMat = new THREE.MeshStandardMaterial({
-            color: 0xffbe0b,
-            emissive: 0xffbe0b,
-            emissiveIntensity: 0.5
+            color: decorColors[i % decorColors.length],
+            emissive: decorColors[i % decorColors.length],
+            emissiveIntensity: 0.6
         });
         const star = new THREE.Mesh(starGeo, starMat);
         star.position.set(
+            (Math.random() - 0.5) * 7,
             (Math.random() - 0.5) * 5,
-            (Math.random() - 0.5) * 3,
-            (Math.random() - 0.5) * 3 - 1
+            (Math.random() - 0.5) * 5
         );
         star.userData.isFloating = true;
         star.userData.angle = Math.random() * Math.PI * 2;
-        star.userData.speed = 0.5 + Math.random() * 0.5;
+        star.userData.speed = 0.8 + Math.random() * 0.8;
         star.userData.baseY = star.position.y;
         modelGroup.add(star);
+    }
+    
+    // Add floating hearts
+    for (let i = 0; i < 8; i++) {
+        const heartShape = new THREE.Shape();
+        heartShape.moveTo(0, 0.1);
+        heartShape.bezierCurveTo(0.1, 0.2, 0.2, 0.1, 0.2, 0);
+        heartShape.bezierCurveTo(0.2, -0.1, 0.1, -0.2, 0, -0.15);
+        heartShape.bezierCurveTo(-0.1, -0.2, -0.2, -0.1, -0.2, 0);
+        heartShape.bezierCurveTo(-0.2, 0.1, -0.1, 0.2, 0, 0.1);
+        
+        const heartGeo = new THREE.ExtrudeGeometry(heartShape, { depth: 0.05, bevelEnabled: false });
+        const heartMat = new THREE.MeshStandardMaterial({
+            color: 0xff006e,
+            emissive: 0xff006e,
+            emissiveIntensity: 0.5
+        });
+        const heart = new THREE.Mesh(heartGeo, heartMat);
+        heart.position.set(
+            (Math.random() - 0.5) * 6,
+            (Math.random() - 0.5) * 4,
+            (Math.random() - 0.5) * 4
+        );
+        heart.userData.isFloating = true;
+        heart.userData.angle = Math.random() * Math.PI * 2;
+        heart.userData.speed = 0.6 + Math.random() * 0.6;
+        heart.userData.baseY = heart.position.y;
+        modelGroup.add(heart);
+    }
+    
+    // Sparkle particles
+    for (let i = 0; i < 30; i++) {
+        const sparkleGeo = new THREE.SphereGeometry(0.05, 8, 8);
+        const sparkleMat = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.9
+        });
+        const sparkle = new THREE.Mesh(sparkleGeo, sparkleMat);
+        sparkle.position.set(
+            (Math.random() - 0.5) * 8,
+            (Math.random() - 0.5) * 6,
+            (Math.random() - 0.5) * 6
+        );
+        sparkle.userData.isFloating = true;
+        sparkle.userData.angle = Math.random() * Math.PI * 2;
+        sparkle.userData.speed = 0.4 + Math.random() * 0.4;
+        sparkle.userData.baseY = sparkle.position.y;
+        modelGroup.add(sparkle);
     }
 }
 
@@ -608,48 +699,93 @@ function animate() {
     time += 0.016;
     
     // Smooth interpolation for head tracking
-    const smoothing = 0.08;
+    const smoothing = 0.12;
     headX += (targetHeadX - headX) * smoothing;
     headY += (targetHeadY - headY) * smoothing;
     headZ += (targetHeadZ - headZ) * smoothing;
     
     // ===== HEAD-COUPLED PERSPECTIVE =====
-    // The key insight: move the camera based on head position
-    // This creates the illusion that the screen is a window
+    // SUPER DRAMATIC parallax effect!
     
-    const parallaxAmount = 3; // How much the camera moves
+    const parallaxAmount = 6; // Much stronger camera movement!
     
     // Move camera position based on head position
     camera.position.x = headX * parallaxAmount;
     camera.position.y = headY * parallaxAmount;
-    camera.position.z = 10; // Keep distance constant
+    camera.position.z = 10;
     
     // Always look at the center of the scene
     camera.lookAt(0, 0, 0);
     
+    // ===== DRAMATIC MODEL ROTATION based on head =====
+    // The entire model group tilts based on head position!
+    const tiltAmount = 0.3;
+    modelGroup.rotation.y = headX * tiltAmount;
+    modelGroup.rotation.x = -headY * tiltAmount * 0.5;
+    
     // ===== Animate objects =====
-    modelGroup.children.forEach(child => {
-        // Floating animation
+    modelGroup.children.forEach((child, index) => {
+        // SUPER dramatic floating animation
         if (child.userData.isFloating) {
             const baseY = child.userData.baseY || 0;
-            child.position.y = baseY + Math.sin(time * 2 + (child.userData.angle || 0)) * 0.15;
-            child.rotation.x += 0.008;
-            child.rotation.y += 0.012;
+            const angle = child.userData.angle || index;
+            const speed = child.userData.speed || 1;
+            
+            // Orbit around the center
+            const orbitRadius = 2.5 + Math.sin(time * 0.5 + angle) * 0.5;
+            const orbitSpeed = time * 0.8 * speed;
+            child.position.x = Math.cos(orbitSpeed + angle) * orbitRadius;
+            child.position.z = Math.sin(orbitSpeed + angle) * orbitRadius;
+            
+            // Dramatic Y bobbing
+            child.position.y = baseY + Math.sin(time * 3 + angle * 2) * 0.8;
+            
+            // Fast spinning
+            child.rotation.x += 0.03;
+            child.rotation.y += 0.04;
+            child.rotation.z += 0.02;
+            
+            // Pulsing scale
+            const pulse = 1 + Math.sin(time * 4 + angle) * 0.2;
+            child.scale.setScalar(pulse);
         }
         
-        // Character bobbing
+        // Character - more lively animation
         if (child.userData.isCharacter) {
-            child.position.y = Math.sin(time * 1.5) * 0.08;
-            child.rotation.y = Math.sin(time * 0.5) * 0.08;
+            // Bouncy movement
+            child.position.y = Math.sin(time * 3) * 0.2 + Math.sin(time * 5) * 0.1;
+            // Wiggle rotation
+            child.rotation.y = Math.sin(time * 2) * 0.15;
+            child.rotation.z = Math.sin(time * 3) * 0.05;
+            // Breathing scale effect
+            const breathe = 1 + Math.sin(time * 2) * 0.03;
+            child.scale.set(breathe, breathe, breathe);
         }
     });
     
-    // Rotate main cube
+    // DRAMATIC cube rotation + head-reactive rotation
     if (currentModel === 'cube') {
         modelGroup.children.forEach(child => {
             if (child.userData.isMainObject) {
-                child.rotation.x += 0.004;
-                child.rotation.y += 0.006;
+                // Base rotation
+                child.rotation.x += 0.008;
+                child.rotation.y += 0.012;
+                
+                // Extra rotation based on head movement!
+                child.rotation.x += headY * 0.02;
+                child.rotation.y += headX * 0.02;
+            }
+        });
+    }
+    
+    // Room model - subtle sway
+    if (currentModel === 'room') {
+        // Add atmospheric movement to room objects
+        modelGroup.children.forEach(child => {
+            if (child.material && child.material.emissive) {
+                // Pulsing glow for emissive materials
+                const glowIntensity = 0.3 + Math.sin(time * 2) * 0.2;
+                child.material.emissiveIntensity = glowIntensity;
             }
         });
     }
