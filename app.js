@@ -361,8 +361,8 @@ function createCharacterModel() {
 function createRoomModel() {
     clearModel();
     
-    const roomSize = 6;
-    const roomDepth = 10;
+    const roomSize = 8;
+    const roomDepth = 12;
     
     // Back wall
     const backWallGeo = new THREE.PlaneGeometry(roomSize, roomSize);
@@ -412,21 +412,22 @@ function createRoomModel() {
     ceiling.position.y = roomSize / 2;
     modelGroup.add(ceiling);
     
-    // Window glow
-    const windowSize = 2;
+    // Window glow - BIGGER
+    const windowSize = 3;
     const windowGlowGeo = new THREE.PlaneGeometry(windowSize, windowSize);
     const windowGlowMat = new THREE.MeshBasicMaterial({
         color: 0x87ceeb,
         transparent: true,
-        opacity: 0.8
+        opacity: 0.9
     });
     const windowGlow = new THREE.Mesh(windowGlowGeo, windowGlowMat);
     windowGlow.position.set(0, 0.5, -roomDepth / 2 + 0.1);
+    windowGlow.userData.isWindowGlow = true;
     modelGroup.add(windowGlow);
     
     // Window frame
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x4a4a6a });
-    const frameThickness = 0.15;
+    const frameThickness = 0.2;
     
     const frameGeo1 = new THREE.BoxGeometry(windowSize + frameThickness * 2, frameThickness, 0.1);
     const topFrame = new THREE.Mesh(frameGeo1, frameMat);
@@ -437,85 +438,210 @@ function createRoomModel() {
     bottomFrame.position.set(0, 0.5 - windowSize / 2 - frameThickness / 2, -roomDepth / 2 + 0.15);
     modelGroup.add(bottomFrame);
     
-    // Desk
-    const deskTopGeo = new THREE.BoxGeometry(2.5, 0.12, 1.2);
+    // Desk - BIGGER
+    const deskTopGeo = new THREE.BoxGeometry(3, 0.15, 1.5);
     const deskMat = new THREE.MeshStandardMaterial({ color: 0x5c4033 });
     const deskTop = new THREE.Mesh(deskTopGeo, deskMat);
-    deskTop.position.set(0, -1.5, -2.5);
+    deskTop.position.set(0, -2, -3);
     modelGroup.add(deskTop);
     
-    // Monitor
-    const monitorGeo = new THREE.BoxGeometry(1.2, 0.8, 0.08);
+    // Monitor - BIGGER
+    const monitorGeo = new THREE.BoxGeometry(1.8, 1.2, 0.1);
     const monitorMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a });
     const monitor = new THREE.Mesh(monitorGeo, monitorMat);
-    monitor.position.set(0, -0.95, -2.8);
+    monitor.position.set(0, -1.2, -3.5);
     modelGroup.add(monitor);
     
     // Monitor screen glow
-    const screenGeo = new THREE.PlaneGeometry(1, 0.65);
+    const screenGeo = new THREE.PlaneGeometry(1.6, 1);
     const screenMat = new THREE.MeshBasicMaterial({ 
         color: 0x00d4ff,
         transparent: true,
-        opacity: 0.8
+        opacity: 0.9
     });
     const screen = new THREE.Mesh(screenGeo, screenMat);
-    screen.position.set(0, -0.95, -2.75);
+    screen.position.set(0, -1.2, -3.44);
+    screen.userData.isScreen = true;
     modelGroup.add(screen);
     
-    // Lamp
-    const lampBaseGeo = new THREE.CylinderGeometry(0.15, 0.2, 0.08, 16);
+    // Lamp - BIGGER
+    const lampBaseGeo = new THREE.CylinderGeometry(0.2, 0.25, 0.1, 16);
     const lampMat = new THREE.MeshStandardMaterial({ color: 0x666666 });
     const lampBase = new THREE.Mesh(lampBaseGeo, lampMat);
-    lampBase.position.set(1.5, -1.4, -2.6);
+    lampBase.position.set(2, -1.9, -3.2);
     modelGroup.add(lampBase);
     
-    const lampShadeGeo = new THREE.ConeGeometry(0.2, 0.3, 16, 1, true);
+    const lampShadeGeo = new THREE.ConeGeometry(0.35, 0.5, 16, 1, true);
     const lampShadeMat = new THREE.MeshStandardMaterial({ 
         color: 0xffbe0b,
         emissive: 0xffbe0b,
-        emissiveIntensity: 0.4,
+        emissiveIntensity: 0.6,
         side: THREE.DoubleSide
     });
     const lampShade = new THREE.Mesh(lampShadeGeo, lampShadeMat);
-    lampShade.position.set(1.5, -0.9, -2.6);
+    lampShade.position.set(2, -1.2, -3.2);
     lampShade.rotation.x = Math.PI;
+    lampShade.userData.isLamp = true;
     modelGroup.add(lampShade);
     
-    // Lamp light
-    const lampLight = new THREE.PointLight(0xffbe0b, 0.6, 4);
-    lampLight.position.set(1.5, -0.9, -2.6);
+    // Lamp light - BRIGHTER
+    const lampLight = new THREE.PointLight(0xffbe0b, 1.2, 6);
+    lampLight.position.set(2, -1.2, -3.2);
     modelGroup.add(lampLight);
     
-    // Books
-    const bookColors = [0xff006e, 0x7b2cbf, 0x00d4ff];
-    bookColors.forEach((color, i) => {
-        const bookGeo = new THREE.BoxGeometry(0.25, 0.3, 0.12);
-        const bookMat = new THREE.MeshStandardMaterial({ color });
+    // FLOATING Books that orbit!
+    const bookColors = [0xff006e, 0x7b2cbf, 0x00d4ff, 0x00ff88, 0xffbe0b];
+    for (let i = 0; i < 8; i++) {
+        const bookGeo = new THREE.BoxGeometry(0.3, 0.4, 0.15);
+        const bookMat = new THREE.MeshStandardMaterial({ 
+            color: bookColors[i % bookColors.length],
+            emissive: bookColors[i % bookColors.length],
+            emissiveIntensity: 0.2
+        });
         const book = new THREE.Mesh(bookGeo, bookMat);
-        book.position.set(-0.8 + i * 0.3, -1.3, -2.5);
-        book.rotation.z = (Math.random() - 0.5) * 0.15;
+        book.position.set(
+            (Math.random() - 0.5) * 5,
+            (Math.random() - 0.5) * 4,
+            -3 + (Math.random() - 0.5) * 4
+        );
+        book.userData.isFloating = true;
+        book.userData.angle = (i / 8) * Math.PI * 2;
+        book.userData.speed = 0.3 + Math.random() * 0.4;
+        book.userData.baseY = book.position.y;
         modelGroup.add(book);
-    });
+    }
     
-    // Plant
-    const potGeo = new THREE.CylinderGeometry(0.15, 0.12, 0.25, 16);
+    // Plant - BIGGER
+    const potGeo = new THREE.CylinderGeometry(0.25, 0.2, 0.4, 16);
     const potMat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
     const pot = new THREE.Mesh(potGeo, potMat);
-    pot.position.set(-2, -2.65, -3);
+    pot.position.set(-2.5, -3.8, -4);
     modelGroup.add(pot);
     
-    // Plant leaves
-    const leafGeo = new THREE.SphereGeometry(0.3, 8, 8);
-    const leafMat = new THREE.MeshStandardMaterial({ color: 0x228b22 });
-    for (let i = 0; i < 4; i++) {
+    // Plant leaves - more leaves
+    const leafGeo = new THREE.SphereGeometry(0.4, 8, 8);
+    const leafMat = new THREE.MeshStandardMaterial({ 
+        color: 0x228b22,
+        emissive: 0x228b22,
+        emissiveIntensity: 0.1
+    });
+    for (let i = 0; i < 8; i++) {
         const leaf = new THREE.Mesh(leafGeo, leafMat);
         leaf.position.set(
-            -2 + (Math.random() - 0.5) * 0.2,
-            -2.3 + i * 0.12,
-            -3 + (Math.random() - 0.5) * 0.2
+            -2.5 + (Math.random() - 0.5) * 0.4,
+            -3.2 + i * 0.15,
+            -4 + (Math.random() - 0.5) * 0.4
         );
-        leaf.scale.set(0.7, 1, 0.7);
+        leaf.scale.set(0.8, 1.2, 0.8);
         modelGroup.add(leaf);
+    }
+    
+    // FLOATING coffee cup
+    const cupGeo = new THREE.CylinderGeometry(0.12, 0.1, 0.2, 16);
+    const cupMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+    const cup = new THREE.Mesh(cupGeo, cupMat);
+    cup.position.set(-1, 0, -2);
+    cup.userData.isFloating = true;
+    cup.userData.angle = 1.5;
+    cup.userData.speed = 0.5;
+    cup.userData.baseY = 0;
+    modelGroup.add(cup);
+    
+    // FLOATING pencils
+    for (let i = 0; i < 5; i++) {
+        const pencilGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.4, 8);
+        const pencilMat = new THREE.MeshStandardMaterial({ 
+            color: [0xffbe0b, 0xff006e, 0x00d4ff, 0x00ff88, 0x7b2cbf][i],
+            emissive: [0xffbe0b, 0xff006e, 0x00d4ff, 0x00ff88, 0x7b2cbf][i],
+            emissiveIntensity: 0.3
+        });
+        const pencil = new THREE.Mesh(pencilGeo, pencilMat);
+        pencil.position.set(
+            1 + (Math.random() - 0.5) * 2,
+            (Math.random() - 0.5) * 3,
+            -2 + (Math.random() - 0.5) * 2
+        );
+        pencil.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+        pencil.userData.isFloating = true;
+        pencil.userData.angle = Math.random() * Math.PI * 2;
+        pencil.userData.speed = 0.6 + Math.random() * 0.6;
+        pencil.userData.baseY = pencil.position.y;
+        modelGroup.add(pencil);
+    }
+    
+    // FLOATING photo frames
+    for (let i = 0; i < 4; i++) {
+        const frameGeo = new THREE.BoxGeometry(0.5, 0.4, 0.05);
+        const frameMat = new THREE.MeshStandardMaterial({ 
+            color: 0x8b4513,
+            emissive: 0x8b4513,
+            emissiveIntensity: 0.1
+        });
+        const frame = new THREE.Mesh(frameGeo, frameMat);
+        
+        // Photo inside
+        const photoGeo = new THREE.PlaneGeometry(0.4, 0.3);
+        const photoColors = [0xff006e, 0x00d4ff, 0xffbe0b, 0x7b2cbf];
+        const photoMat = new THREE.MeshBasicMaterial({ 
+            color: photoColors[i],
+            transparent: true,
+            opacity: 0.8
+        });
+        const photo = new THREE.Mesh(photoGeo, photoMat);
+        photo.position.z = 0.03;
+        frame.add(photo);
+        
+        frame.position.set(
+            (Math.random() - 0.5) * 4,
+            (Math.random() - 0.5) * 3,
+            -3 + (Math.random() - 0.5) * 3
+        );
+        frame.userData.isFloating = true;
+        frame.userData.angle = Math.random() * Math.PI * 2;
+        frame.userData.speed = 0.4 + Math.random() * 0.3;
+        frame.userData.baseY = frame.position.y;
+        modelGroup.add(frame);
+    }
+    
+    // DUST PARTICLES floating in the room
+    for (let i = 0; i < 50; i++) {
+        const dustGeo = new THREE.SphereGeometry(0.03, 4, 4);
+        const dustMat = new THREE.MeshBasicMaterial({
+            color: 0xffffcc,
+            transparent: true,
+            opacity: 0.6
+        });
+        const dust = new THREE.Mesh(dustGeo, dustMat);
+        dust.position.set(
+            (Math.random() - 0.5) * 7,
+            (Math.random() - 0.5) * 7,
+            (Math.random() - 0.5) * 10
+        );
+        dust.userData.isFloating = true;
+        dust.userData.angle = Math.random() * Math.PI * 2;
+        dust.userData.speed = 0.2 + Math.random() * 0.3;
+        dust.userData.baseY = dust.position.y;
+        modelGroup.add(dust);
+    }
+    
+    // NEON signs on walls
+    const neonColors = [0xff006e, 0x00d4ff, 0x00ff88];
+    for (let i = 0; i < 3; i++) {
+        const neonGeo = new THREE.TorusGeometry(0.3, 0.05, 8, 32);
+        const neonMat = new THREE.MeshBasicMaterial({
+            color: neonColors[i],
+            transparent: true,
+            opacity: 0.9
+        });
+        const neon = new THREE.Mesh(neonGeo, neonMat);
+        neon.position.set(
+            -3.9,
+            1 - i * 1.2,
+            -2 + i * 0.5
+        );
+        neon.rotation.y = Math.PI / 2;
+        neon.userData.isNeon = true;
+        modelGroup.add(neon);
     }
 }
 
@@ -778,14 +904,43 @@ function animate() {
         });
     }
     
-    // Room model - subtle sway
+    // Room model - DRAMATIC effects!
     if (currentModel === 'room') {
-        // Add atmospheric movement to room objects
         modelGroup.children.forEach(child => {
+            // Pulsing glow for emissive materials
             if (child.material && child.material.emissive) {
-                // Pulsing glow for emissive materials
-                const glowIntensity = 0.3 + Math.sin(time * 2) * 0.2;
+                const glowIntensity = 0.3 + Math.sin(time * 3) * 0.3;
                 child.material.emissiveIntensity = glowIntensity;
+            }
+            
+            // Screen flicker effect
+            if (child.userData.isScreen) {
+                const flicker = 0.7 + Math.sin(time * 10) * 0.1 + Math.sin(time * 23) * 0.1;
+                child.material.opacity = flicker;
+                // Color shift
+                const r = 0.5 + Math.sin(time * 2) * 0.5;
+                const g = 0.8 + Math.sin(time * 3) * 0.2;
+                const b = 1;
+                child.material.color.setRGB(r * 0, g * 0.83, b);
+            }
+            
+            // Window glow pulsing
+            if (child.userData.isWindowGlow) {
+                const windowPulse = 0.7 + Math.sin(time * 0.5) * 0.2;
+                child.material.opacity = windowPulse;
+            }
+            
+            // Lamp sway
+            if (child.userData.isLamp) {
+                child.rotation.z = Math.sin(time * 2) * 0.1;
+                child.rotation.x = Math.PI + Math.sin(time * 1.5) * 0.05;
+            }
+            
+            // Neon signs pulse
+            if (child.userData.isNeon) {
+                const neonPulse = 0.6 + Math.sin(time * 4 + child.position.y) * 0.4;
+                child.material.opacity = neonPulse;
+                child.scale.setScalar(1 + Math.sin(time * 3) * 0.1);
             }
         });
     }
